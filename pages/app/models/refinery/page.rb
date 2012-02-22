@@ -306,15 +306,21 @@ module Refinery
     end
 
     def path_cache_key
-      [cache_key, 'nested_path'].join('#')
+      Digest::MD5.hexdigest [cache_key, 'nested_path'].join('#')
+    end
+
+    def digest_or_plain(key)
+      Refinery::Pages.cache_pages_only_digest ? Digest::MD5.hexdigest(key) : key
     end
 
     def url_cache_key
-      [cache_key, 'nested_url'].join('#')
+      key = [cache_key, 'nested_url'].join('#')
+      digest_or_plain(key)
     end
 
     def cache_key
-      [Refinery::Core.base_cache_key, ::I18n.locale, to_param].compact.join('/')
+      key = [Refinery::Core.base_cache_key, ::I18n.locale, to_param].compact.join('/')
+      digest_or_plain(key)
     end
 
     # Returns true if this page is "published"
