@@ -9,11 +9,11 @@ Gem::Specification.new do |s|
   s.name              = %q{refinerycms-testing}
   s.version           = version
   s.summary           = %q{Testing plugin for Refinery CMS}
-  s.description       = %q{This plugin adds the ability to run cucumber and rspec against the RefineryCMS gem while inside a RefineryCMS project}
+  s.description       = %q{This plugin adds the ability to tests against the Refinery CMS gem while inside a Refinery CMS extension}
   s.email             = %q{info@refinerycms.com}
   s.homepage          = %q{http://refinerycms.com}
   s.rubyforge_project = %q{refinerycms}
-  s.authors           = ['Philip Arndt']
+  s.authors           = ['Philip Arndt', 'Jamie Winsor']
   s.license           = %q{MIT}
   s.require_paths     = %w(lib)
 
@@ -23,13 +23,14 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'database_cleaner',        '~> 0.7.1'
   s.add_dependency 'launchy'
-  s.add_dependency 'factory_girl_rails',      '~> 1.4.0'
+  s.add_dependency 'factory_girl_rails',      '~> 1.6.0'
   s.add_dependency 'json_pure'
   s.add_dependency 'rack-test',               '~> 0.6.0'
   s.add_dependency 'rspec-rails',             '~> 2.8.1'
   s.add_dependency 'fuubar'
   s.add_dependency 'rspec-instafail'
   s.add_dependency 'capybara',                '~> 1.1.0'
-  s.add_dependency 'guard-rspec',             '~> 0.5.0'
+  s.add_dependency 'guard-rspec',             '~> 0.6.0'
+  s.add_dependency 'guard-spork',             '~> 0.5.2'
   s.add_dependency 'refinerycms-core',        version
 end

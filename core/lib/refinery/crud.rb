@@ -22,7 +22,6 @@ module Refinery
       this_class = class_name.constantize.base_class
       singular_name = ActiveModel::Naming.param_key(this_class)
       plural_name = singular_name.pluralize
-      namespacing = class_name.underscore.gsub(%r{/?#{this_class.model_name.param_key}($|/)}, '').gsub('/', '_')
 
       {
         :conditions => '',
@@ -30,7 +29,7 @@ module Refinery
         :order => ('position ASC' if this_class.table_exists? && this_class.column_names.include?('position')),
         :paging => true,
         :per_page => false,
-        :redirect_to_url => "main_app.#{namespacing}_admin_#{plural_name}_path",
+        :redirect_to_url => "refinery.#{Refinery.route_for_model(class_name.constantize, true)}",
         :searchable => true,
         :search_conditions => '',
         :sortable => true,
@@ -69,14 +68,14 @@ module Refinery
 
           def create
             # if the position field exists, set this object as last object, given the conditions of this class.
-            if #{class_name}.column_names.include?("position")
+            if #{class_name}.column_names.include?("position") && params[:#{singular_name}][:position].nil?
               params[:#{singular_name}].merge!({
                 :position => ((#{class_name}.maximum(:position, :conditions => #{options[:conditions].inspect})||-1) + 1)
               })
             end
 
             if (@#{singular_name} = #{class_name}.create(params[:#{singular_name}])).valid?
-              (request.xhr? ? flash.now : flash).notice = t(
+              flash.notice = t(
                 'refinery.crudify.created',
                 :what => "'\#{@#{singular_name}.#{options[:title_attribute]}}'"
               )
@@ -88,18 +87,19 @@ module Refinery
                   unless request.xhr?
                     redirect_to :back
                   else
-                    render :partial => "/refinery/message"
+                    render :partial => '/refinery/message'
                   end
                 end
               else
-                render :text => "<script>parent.window.location = '\#{#{options[:redirect_to_url]}}';</script>"
+                self.index
+                @dialog_successful = true
+                render :index
               end
             else
               unless request.xhr?
                 render :action => 'new'
               else
-                render :partial => "/refinery/admin/error_messages",
-                       :locals => {
+                render :partial => '/refinery/admin/error_messages', :locals => {
                          :object => @#{singular_name},
                          :include_object_name => true
                        }
@@ -113,7 +113,7 @@ module Refinery
 
           def update
             if @#{singular_name}.update_attributes(params[:#{singular_name}])
-              (request.xhr? ? flash.now : flash).notice = t(
+              flash.notice = t(
                 'refinery.crudify.updated',
                 :what => "'\#{@#{singular_name}.#{options[:title_attribute]}}'"
               )
@@ -125,18 +125,19 @@ module Refinery
                   unless request.xhr?
                     redirect_to :back
                   else
-                    render :partial => "/refinery/message"
+                    render :partial => '/refinery/message'
                   end
                 end
               else
-                render :text => "<script>parent.window.location = '\#{#{options[:redirect_to_url]}}';</script>"
+                self.index
+                @dialog_successful = true
+                render :index
               end
             else
               unless request.xhr?
                 render :action => 'edit'
               else
-                render :partial => "/refinery/admin/error_messages",
-                       :locals => {
+                render :partial => '/refinery/admin/error_messages', :locals => {
                          :object => @#{singular_name},
                          :include_object_name => true
                        }
@@ -183,6 +184,15 @@ module Refinery
             @#{plural_name} = @#{plural_name}.paginate(:page => params[:page], :per_page => per_page)
           end
 
+          # If the controller is being accessed via an ajax request
+          # then render only the collection of items.
+          def render_partial_response?
+            if request.xhr?
+              render :text => render_to_string(:partial => '#{plural_name}', :layout => false).html_safe,
+                     :layout => 'refinery/flash' and return false
+            end
+          end
+
           # Returns a weighted set of results based on the query specified by the user.
           def search_all_#{plural_name}
             # First find normal results.
@@ -197,6 +207,7 @@ module Refinery
           protected :find_#{singular_name},
                     :find_all_#{plural_name},
                     :paginate_all_#{plural_name},
+                    :render_partial_response?,
                     :search_all_#{plural_name}
         )
 
@@ -208,7 +219,7 @@ module Refinery
                 search_all_#{plural_name} if searching?
                 paginate_all_#{plural_name}
 
-                render :partial => '#{plural_name}' if #{options[:xhr_paging].inspect} && request.xhr?
+                render_partial_response?
               end
             )
           else
@@ -219,6 +230,8 @@ module Refinery
                 else
                   search_all_#{plural_name}
                 end
+
+                render_partial_response?
               end
             )
           end
@@ -229,13 +242,14 @@ module Refinery
               def index
                 paginate_all_#{plural_name}
 
-                render :partial => '#{plural_name}' if #{options[:xhr_paging].inspect} && request.xhr?
+                render_partial_response?
               end
             )
           else
             module_eval %(
               def index
                 find_all_#{plural_name}
+                render_partial_response?
               end
             )
           end
@@ -293,15 +307,21 @@ module Refinery
         end
 
         module_eval %(
-          def self.sortable?
-            #{options[:sortable].to_s}
-          end
+          class << self
+            def pageable?
+              #{options[:paging].to_s}
+            end
+            alias_method :paging?, :pageable?
 
-          def self.searchable?
-            #{options[:searchable].to_s}
+            def sortable?
+              #{options[:sortable].to_s}
+            end
+
+            def searchable?
+              #{options[:searchable].to_s}
+            end
           end
         )
-
 
       end
 

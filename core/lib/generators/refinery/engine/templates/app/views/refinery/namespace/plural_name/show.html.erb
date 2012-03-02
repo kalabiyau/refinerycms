@@ -10,7 +10,11 @@
 <% if attribute.type.to_s == 'image' -%>
       <%%= image_fu @<%= singular_name %>.<%= attribute.name %>, nil %>
 <% elsif attribute.type.to_s == 'resource' -%>
-      <%%= link_to <%= "'#{attribute.name}'" %>, @<%= singular_name %>.<%= attribute.name %>.url %>
+      <%% if @<%= singular_name %>.<%= attribute.name %>.present? %>
+        <%%= link_to <%= "'#{attribute.name}'" %>, @<%= singular_name %>.<%= attribute.name %>.url %>
+      <%% else %>
+        <%= attribute.name %>
+      <%% end %>
 <% else -%>
       <%%=raw @<%= singular_name %>.<%= attribute.name %> %>
 <% end -%>
@@ -25,11 +29,11 @@
     <ul id="<%= plural_name %>">
       <%% @<%= "all_" if plural_name == singular_name%><%= plural_name %>.each do |<%= singular_name %>| %>
         <li>
-          <%%= link_to <%= singular_name %><% if (title = attributes.detect { |a| a.type.to_s == "string" }).present? %>.<%= title.name %><% else %>.title<% end %>, main_app.refinery_<%= namespacing.underscore %>_<%= singular_name %>_path(<%= singular_name %>) %>
+          <%%= link_to <%= singular_name %><% if (title = attributes.detect { |a| a.type.to_s == "string" }).present? %>.<%= title.name %><% else %>.title<% end %>, refinery.<%= namespacing.underscore %>_<%= singular_name %>_path(<%= singular_name %>) %>
         </li>
       <%% end %>
     </ul>
   </aside>
 <%% end %>
 
-<%%= render :partial => "/refinery/content_page" %>
+<%%= render '/refinery/content_page' %>

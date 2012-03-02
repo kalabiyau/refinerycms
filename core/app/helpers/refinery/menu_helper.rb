@@ -20,7 +20,9 @@ module Refinery
       options.update(:sibling_count => options[:menu_branch].shown_siblings.length) unless options[:sibling_count]
 
       css = []
-      css << 'selected' if selected_page_or_descendant_page_selected?(local_assigns[:menu_branch])
+      css << Refinery::Core.menu_css[:selected] if selected_page_or_descendant_page_selected?(local_assigns[:menu_branch]) unless Refinery::Core.menu_css[:selected].nil?
+      css << Refinery::Core.menu_css[:first] if options[:menu_branch_counter] == 0 unless Refinery::Core.menu_css[:first].nil?
+      css << Refinery::Core.menu_css[:last] if options[:menu_branch_counter] == options[:sibling_count] unless Refinery::Core.menu_css[:last].nil?
       css
     end
 
@@ -38,7 +40,7 @@ module Refinery
     # Determine whether the supplied page is the currently open page according to Refinery.
     # Also checks whether Rails thinks it is selected after that using current_page?
     def selected_page?(page)
-      path = request.path
+      path = request.path.sub("//", "/")
       path = path.force_encoding('utf-8') if path.respond_to?(:force_encoding)
 
       # Ensure we match the path without the locale, if present.

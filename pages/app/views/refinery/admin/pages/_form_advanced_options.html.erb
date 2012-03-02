@@ -74,8 +74,8 @@
       <% content_for :javascripts do %>
       <script>
         $(document).ready(function(){
-          link_tester.init('<%= main_app.test_url_refinery_admin_pages_dialogs_path %>',
-                           '<%= main_app.test_email_refinery_admin_pages_dialogs_path %>');
+          link_tester.init('<%= refinery.test_url_admin_pages_dialogs_path %>',
+                           '<%= refinery.test_email_admin_pages_dialogs_path %>');
 
           link_tester.validate_url_textbox("#page_link_url")
         });
@@ -94,6 +94,5 @@
     </div>
   </div>
 
-  <%= render :partial => "form_advanced_options_seo",
-             :locals => {:f => f} %>
+  <%= render 'form_advanced_options_seo', :f => f %>
 </div>

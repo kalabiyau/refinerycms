@@ -11,11 +11,11 @@ module Refinery
         @root ||= Pathname.new(File.expand_path('../../../', __FILE__))
       end
 
-      # Load the factories of all currently loaded engines
+      # Load the factories of all currently loaded extensions
       def load_factories
-        Refinery.engines.each do |engine_const|
-          if engine_const.respond_to?(:factory_paths)
-            engine_const.send(:factory_paths).each do |path|
+        Refinery.extensions.each do |extension_const|
+          if extension_const.respond_to?(:factory_paths)
+            extension_const.send(:factory_paths).each do |path|
               FactoryGirl.definition_file_paths << path
             end
           end
@@ -25,6 +25,7 @@ module Refinery
     end
 
     require 'refinery/testing/railtie'
+    require 'refinery/testing/url_helper'
 
     autoload :ControllerMacros, 'refinery/testing/controller_macros'
     autoload :RequestMacros, 'refinery/testing/request_macros'

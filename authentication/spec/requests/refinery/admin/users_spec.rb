@@ -1,11 +1,11 @@
 require "spec_helper"
 
 describe "manage users" do
-  login_refinery_user
+  login_refinery_superuser
 
   describe "new/create" do
     it "allows to create user" do
-      visit refinery_admin_users_path
+      visit refinery.admin_users_path
       click_link "Add new user"
 
       fill_in "Username", :with => "test"
@@ -21,7 +21,7 @@ describe "manage users" do
 
   describe "edit/update" do
     it "allows to update user" do
-      visit refinery_admin_users_path
+      visit refinery.admin_users_path
       click_link "Edit this user"
 
       fill_in "Username", :with => "cmsrefinery"
@@ -31,13 +31,27 @@ describe "manage users" do
       page.should have_content("cmsrefinery was successfully updated.")
       page.should have_content("cmsrefinery (cms@refinerycms.com)")
     end
+
+    let(:dotty_user) { FactoryGirl.create(:refinery_user, :username => 'user.name.with.lots.of.dots') }
+    it "accepts a username with a '.' in it" do
+      dotty_user # create the user
+      visit refinery.admin_users_path
+
+      page.should have_css("#sortable_#{dotty_user.id}")
+
+      within "#sortable_#{dotty_user.id}" do
+        click_link "Edit this user"
+      end
+
+      page.should have_css("form#edit_user_#{dotty_user.id}")
+    end
   end
 
   describe "destroy" do
     let!(:user) { FactoryGirl.create(:user, :username => "ugisozols") }
 
     it "allows to destroy only regular user" do
-      visit refinery_admin_users_path
+      visit refinery.admin_users_path
       page.should have_selector("a[href='/refinery/users/#{user.username}']")
       page.should have_no_selector("a[href='/refinery/users/refinerycms']")
 

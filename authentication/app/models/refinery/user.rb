@@ -1,12 +1,13 @@
 require 'devise'
 
 module Refinery
-  class User < Refinery::Core::Base
-    # TODO: This works around a bug in rails habtm with namespaces.
-    has_and_belongs_to_many :roles, :join_table => ::Refinery::RolesUsers.table_name
+  class User < Refinery::Core::BaseModel
+    extend FriendlyId
+
+    has_and_belongs_to_many :roles, :join_table => :refinery_roles_users
 
     has_many :plugins, :class_name => "UserPlugin", :order => "position ASC", :dependent => :destroy
-    has_friendly_id :username, :use_slug => true unless ENV['RAILS_ASSETS_PRECOMPILE']
+    friendly_id :username, :use => [:slugged]
 
     # Include default devise modules. Others available are:
     # :token_authenticatable, :confirmable, :lockable and :timeoutable
@@ -77,6 +78,8 @@ module Refinery
         add_role(:refinery)
         # add superuser role
         add_role(:superuser) if ::Refinery::Role[:refinery].users.count == 1
+        # add plugins
+        self.plugins = Refinery::Plugins.registered.in_menu.names
       end
 
       # return true/false based on validations

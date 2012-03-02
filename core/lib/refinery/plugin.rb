@@ -60,12 +60,13 @@ module Refinery
     # Returns a hash that can be used to create a url that points to the administration part of the plugin.
     def url
       @url ||= if controller.present?
-        {:controller => "/admin/#{controller}"}
+        { :controller => "refinery/admin/#{controller}" }
       elsif directory.present?
-        {:controller => "/admin/#{directory.split('/').pop}"}
+        { :controller => "refinery/admin/#{directory.split('/').pop}" }
       else
-        {:controller => "/admin/#{name}"}
+        { :controller => "refinery/admin/#{name}" }
       end
+      @url.is_a?(Hash) ? {:only_path => true}.merge(@url) : @url
     end
 
   # Make this protected, so that only Plugin.register can use it.

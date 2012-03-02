@@ -53,7 +53,7 @@ module Refinery
       # module so those validations are not tested here
       let(:attr) do
         {
-          :username => "RefineryCMS",
+          :username => "Refinery CMS",
           :email => "refinery@cms.com",
           :password => "123456",
           :password_confirmation => "123456"
@@ -184,24 +184,35 @@ module Refinery
     end
 
     describe "#create_first" do
-      before { user.create_first }
-
-      it "have a refinery role" do
-        user.roles.collect(&:title).should include("Refinery")
+      let(:first_user) do
+        first = FactoryGirl.build(:user)
+        first.create_first
+        first
       end
 
-      it "have a superuser role" do
-        user.roles.collect(&:title).should include("Superuser")
+      it "adds refinery role" do
+        first_user.roles.collect(&:title).should include("Refinery")
+      end
+
+      it "adds superuser role" do
+        first_user.roles.collect(&:title).should include("Superuser")
+      end
+
+      it "adds registered plugins" do
+        first_user.plugins.collect(&:name).should eq(
+          ["refinery_users", "refinery_dashboard", "refinery_images",
+           "refinery_files", "refinery_pages"]
+        )
       end
 
       it "returns true on success" do
-        user.stub(:valid?).and_return(true)
-        user.create_first.should == true
+        first_user.stub(:valid?).and_return(true)
+        first_user.create_first.should == true
       end
 
       it "returns false on failure" do
-        user.stub(:valid?).and_return(false)
-        user.create_first.should == false
+        first_user.stub(:valid?).and_return(false)
+        first_user.create_first.should == false
       end
     end
 

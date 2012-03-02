@@ -1,13 +1,16 @@
 var shiftHeld = false;
 var initialLoad = true;
-$(document).ready(function(){
+
+init_refinery_admin = function(){
   init_interface();
   init_sortable_menu();
   init_submit_continue();
   init_modal_dialogs();
   init_tooltips();
   init_ajaxy_pagination();
-});
+};
+
+$(document).ready(init_refinery_admin);
 
 if(typeof(window.onpopstate) == "object"){
   $(window).bind('popstate', function(e) {
@@ -94,6 +97,24 @@ init_modal_dialogs = function(){
     });
   });
 };
+
+refinery_dialog_success = function(e) {
+  close_dialog();
+
+  $.ajax({
+    url: window.location.pathname,
+    cache: false,
+    success: function(data) {
+      $('.pagination_container').html(data);
+
+      $('#flash_container > #flash').remove();
+      $('#flash_container').append($('.pagination_container').find('#flash'));
+
+      $('#flash').css({'width': 'auto', 'visibility': ''}).fadeIn(550);
+      init_refinery_admin();
+    }
+  });
+}
 
 trigger_reordering = function(e, enable) {
   $menu = $("#menu");
@@ -193,8 +214,8 @@ init_tooltips = function(args){
             tooltip.corner('6px').find('span').corner('6px');
           }
 
-          tooltip_nib_image = $.browser.msie ? 'tooltip-nib.gif' : 'tooltip-nib.png';
-          nib = $("<img src='/assets/refinery/"+tooltip_nib_image+"' class='tooltip-nib'/>").appendTo('#tooltip_container');
+          tooltip_nib_extension = $.browser.msie ? '.gif' : '.png';
+          nib = $("<img src='<%= asset_path 'refinery/tooltip-nib' %>" + tooltip_nib_extension + "' class='tooltip-nib'/>").appendTo('#tooltip_container');
 
           tooltip.css({
             'opacity': 0
@@ -302,7 +323,7 @@ var link_tester = {
 
   validate_textbox: function(validation_method, textbox_id, callback) {
     var icon = '';
-    var loader_img = $("<img id='" + textbox_id.replace('#','') + "_test_loader' src='/assets/refinery/ajax-loader.gif' alt='Testing...' style='display: none;'/>");
+    var loader_img = $("<img id='" + textbox_id.replace('#','') + "_test_loader' src='<%= asset_path 'refinery/ajax-loader.gif' %>' alt='Testing...' style='display: none;'/>");
     var result_span = $("<span id='" + textbox_id.replace('#','') + "_test_result'></span>");
 
     loader_img.insertAfter($(textbox_id));
@@ -457,7 +478,7 @@ var link_dialog = {
     $('#email_address_text, #email_default_subject_text, #email_default_body_text').change(function(e){
       var default_subject = $('#email_default_subject_text').val(),
           default_body = $('#email_default_body_text').val(),
-          mailto = "mailto:" + $('#email_address_text').val(),
+          recipient = $('#email_address_text').val();
           modifier = "?",
           additional = "";
 
@@ -471,7 +492,11 @@ var link_dialog = {
         modifier = "&";
       }
 
-      link_dialog.update_parent(mailto + additional, mailto.replace('mailto:', ''));
+      var hex_recipient = '';
+      for (var i = 0; i < recipient.length; i++) {
+        hex_recipient += '%' + recipient.charCodeAt(i).toString(16);
+      }
+      link_dialog.update_parent("mailto:" + hex_recipient + additional, recipient);
     });
   },
 
@@ -908,7 +933,7 @@ var image_picker = {
       .attr({'src': '', 'width': '', 'height': ''})
       .css({'width': 'auto', 'height': 'auto'})
       .hide();
-    $(this.container).find(this.picker.options.field).val('');
+    $(this.container).find(this.picker.options.field).val('').trigger("change");
     $(this.container).find(this.picker.options.no_image_message).show();
     $(this.container).find(this.picker.options.remove_image_button).hide();
   }
@@ -924,7 +949,7 @@ var image_picker = {
   , changed: function(e) {
     $(this.container).find(this.picker.options.field).val(
       this.image.id.replace("image_", "")
-    );
+    ).trigger("change");
 
     var size = this.picker.options.thumbnail || 'original';
     this.image.src = $(this.image).attr('data-' + size);
@@ -968,7 +993,9 @@ close_dialog = function(e) {
     the_body.removeClass('hide-overflow');
     the_dialog.filter(':data(dialog)').dialog('close');
     the_dialog.remove();
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
   }
 };
 

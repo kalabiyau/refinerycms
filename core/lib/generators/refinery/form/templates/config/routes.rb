@@ -1,24 +1,26 @@
-Rails.application.routes.draw do
-  scope(:module => :'refinery/<%= class_name.pluralize.underscore.downcase %>',
-        :as => :refinery_<%= class_name.pluralize.underscore.downcase %>) do
-    resources :<%= class_name.pluralize.underscore.downcase %>, :only => [:new, :create] do
+Refinery::Core::Engine.routes.draw do
+  # Frontend routes
+  namespace :<%= namespacing.underscore %> do
+    resources :<%= plural_name %><%= ", :path => ''" if namespacing.underscore == plural_name %>, :only => [:new, :create] do
       collection do
         get :thank_you
       end
     end
   end
 
-  scope(:path => :'refinery/<%= class_name.pluralize.underscore.downcase %>',
-        :as => :refinery_<%=class_name.pluralize.underscore.downcase %>_admin,
-        :module => :'refinery/<%= class_name.pluralize.underscore.downcase %>/admin') do
-    resources :<%= class_name.pluralize.underscore.downcase %>, :path => '' <% if @includes_spam %> do
-      collection do
-        get :spam
-      end
-      member do
-        get :toggle_spam
-      end
-    end<% end %>
-    resources :settings
+  # Admin routes
+  namespace :<%= namespacing.underscore %>, :path => '' do
+    namespace :admin, :path => 'refinery/<%= namespacing.underscore %>' do
+      resources :<%= plural_name %>, :path => '' <% if @includes_spam %> do
+        collection do
+          get :spam
+        end
+        member do
+          get :toggle_spam
+        end
+      end<% end %>
+      resources :settings
+    end
   end
 end
+
