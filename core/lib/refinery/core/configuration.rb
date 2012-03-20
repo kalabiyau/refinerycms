@@ -44,14 +44,6 @@ module Refinery
       self.stylesheets = []
     end
 
-    def self.site_name
-      if Refinery.i18n_enabled?
-        self.config.site_name[Refinery::I18n.current_frontend_locale] || self.config.site_name[Refinery::I18n.default_frontend_locale]
-      else
-        self.config.site_name
-      end
-    end
-
     # wrapper for stylesheet registration
     class Stylesheet
       attr_reader :options, :path
