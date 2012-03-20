@@ -12,7 +12,7 @@ module Refinery
     self.rescue_not_found = false
     self.s3_backend = false
     self.base_cache_key = :refinery
-    self.site_name = { :en => "Company Name" }
+    self.site_name = "Company Name"
     self.google_analytics_page_code = "UA-xxxxxx-x"
     self.authenticity_token_on_frontend = true
     self.menu_hide_children = false
